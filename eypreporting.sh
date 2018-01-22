@@ -7,6 +7,15 @@ REPO_PATTERN=${REPO_PATTERN:-eyp-}
 API_URL_REPOLIST="https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100"
 API_URL_REPOINFO_BASE="https://api.github.com/repos/${GITHUB_USERNAME}"
 
+function update_doc()
+{
+  curl -u admin:admin -X PUT -H 'Content-Type: application/json' -d'{"id":"3604482","type":"page",
+"title":"new page","space":{"key":"TST"},"body":{"storage":{"value":
+"<p>This is the updated text for the new page</p>","representation":"storage"}},
+"version":{"number":2}}' http://localhost:8080/confluence/rest/api/content/3604482 | python -mjson.tool
+
+}
+
 function paginar()
 {
   REPO_LIST_HEADERS=$(curl -I "${API_URL_REPOLIST}&page=${PAGENUM}" 2>/dev/null)
@@ -83,6 +92,24 @@ function getrepolist()
   REPOLIST=$(echo -e "${REPOLIST}\n$(curl "${API_URL_REPOLIST}&page=${PAGENUM}" 2>/dev/null | grep "ssh_url" | cut -f4 -d\" | grep -E "/${REPO_PATTERN}")")
 }
 
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+
+BASEDIR=$(dirname $0)
+BASENAME=$(basename $0)
+
+if [ ! -z "$1" ] && [ -f "$1" ];
+then
+  . $1 2>/dev/null
+else
+  if [[ -s "$BASEDIR/${BASENAME%%.*}.config" ]];
+  then
+    . $BASEDIR/${BASENAME%%.*}.config 2>/dev/null
+  else
+    echo "config file missing"
+    exit 1
+  fi
+fi
+
 mkdir -p ${REPOBASEDIR}
 
 getrepolist
@@ -90,14 +117,16 @@ getrepolist
 REPORT_REPOS="$(echo "|| Module name || Version || Travis status || Links ||")"
 
 echo "start: $(date)"
-for REPO_URL in ${REPOLIST};
+for REPO_URL in $(echo "${REPOLIST}" | head -n1); #DEBUG
 do
   REPORT_REPOS="${REPORT_REPOS}\n$(report "${REPO_URL}")"
-  sleep 10
+  # sleep 10 DEBUG
 done
 echo "end: $(date)"
 
 # postejar
-echo -e ${REPORT_REPOS}
+# echo -e ${REPORT_REPOS}
+
+curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' -d"{\"id\":\"3604482\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"TST\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":2}}" "${DOC_URL_REST}/content/${DOC_ID}"
 
 exit 0
