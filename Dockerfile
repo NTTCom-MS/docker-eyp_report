@@ -13,6 +13,7 @@ RUN yum install curl -y
 RUN mkdir -p /var/eyprepos /usr/bin
 
 COPY eypreporting.sh /usr/bin/eypreporting.sh
+COPY os_metadata.py /usr/bin/os_metadata.py
 
 VOLUME ["/var/eyprepos"]
 VOLUME ["/root/.ssh"]

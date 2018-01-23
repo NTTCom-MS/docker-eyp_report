@@ -38,6 +38,16 @@ function update_doc()
   -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
 }
 
+function update_matrix()
+{
+  CURRENT_DOC_VERSION="$(curl -u "${DOC_USER}:${DOC_PASSWORD}" "${DOC_URL_REST}/content/${MATRIX_ID}" 2>/dev/null | python -c 'import sys, json; print json.load(sys.stdin)["version"]' | grep -Eo "'number': [0-9]+" | awk '{ print $NF }')"
+
+  let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
+
+  curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
+  -d"{\"id\":\"${MATRIX_ID}\",\"type\":\"page\",\"title\":\"Module support matrix\",\"space\":{\"key\":\"${MATRIX_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${MATRIX_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${MATRIX_ID}"
+}
+
 function paginar()
 {
   REPO_LIST_HEADERS=$(curl -I "${API_URL_REPOLIST}&page=${PAGENUM}" 2>/dev/null)
@@ -87,13 +97,31 @@ function report()
   git clone ${REPO_URL} > /dev/null 2>&1
   cd ${REPO_NAME}
 
-  # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
-  MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
+  if [ -f "metadata.json" ];
+  then
+    # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
+    MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
+  fi
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
              "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><ac:image><ri:url ri:value=\"https://api.travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master\"/></ac:image></a>" \
              "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a><br/><a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
+}
+
+function getossupport()
+{
+  REPO_URL=$1
+
+  REPO_NAME=${REPO_URL##*/}
+  REPO_NAME=${REPO_NAME%.*}
+
+  cd "${REPOBASEDIR}/${REPO_NAME}"
+
+  if [ -f "metadata.json" ];
+  then
+    echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+  fi
 }
 
 function getpagesrepo()
@@ -134,8 +162,9 @@ function getrepolist()
 
 PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 
-BASEDIR=$(dirname $0)
-BASENAME=$(basename $0)
+REALPATH=$(echo "$(cd "$(dirname "$0")"; pwd)/$(basename "$0")")
+BASEDIR=$(dirname ${REALPATH})
+BASENAME=$(basename ${REALPATH})
 
 if [ ! -z "$1" ] && [ -f "$1" ];
 then
@@ -163,10 +192,13 @@ getrepolist
 COUNT_MODULES="$(echo "${REPOLIST}" | wc -l)"
 
 REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
+MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RHEL 7' 'Ubuntu 14.04' 'Ubuntu 16.04' 'SLES 11.3')"
 
 for REPO_URL in $(echo "${REPOLIST}");
 do
   REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
+  MATRIX_REPOS="${MATRIX_REPOS}$(getossupport "${REPO_URL}")"
+
   if [ "${DEBUG}" -eq 0 ];
   then
     sleep "$(echo $RANDOM | grep -Eo "^[0-9]{2}")"
@@ -174,7 +206,11 @@ do
 done
 
 REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
+MATRIX_REPOS="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
 
+echo "== updating available modules page =="
 update_doc
+echo -e "\n\n== updating support matrix page =="
+update_matrix
 
 exit 0
