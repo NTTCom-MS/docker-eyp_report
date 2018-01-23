@@ -87,7 +87,8 @@ function report()
   git clone ${REPO_URL} > /dev/null 2>&1
   cd ${REPO_NAME}
 
-  MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
+  # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
+  MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
