@@ -4,7 +4,6 @@ GITHUB_USERNAME=${GITHUB_USERNAME:-NTTCom-MS}
 REPOBASEDIR=${REPOBASEDIR:-/var/eyprepos}
 REPO_PATTERN=${REPO_PATTERN:-eyp-}
 PAGES_REPO=${PAGES_REPO:-git@github.com:NTTCom-MS/NTTCom-MS.github.io.git}
-DEBUG=1
 
 API_URL_REPOLIST="https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100"
 API_URL_REPOINFO_BASE="https://api.github.com/repos/${GITHUB_USERNAME}"
@@ -93,9 +92,8 @@ function report()
   #
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
-             "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><img src=\"https://travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png&amp;branch=master\"/></a>" \
-             "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a>" \
-             "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
+             "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><ac:image><ri:url ri:value=\"https://api.travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master\"/></ac:image></a>" \
+             "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a><br/><a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
 }
 
 function getpagesrepo()
@@ -164,9 +162,8 @@ fi
 
 getrepolist
 
-REPORT_REPOS="<table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Documentation' 'CHANGELOG')"
+REPORT_REPOS="<table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
 
-echo "start: $(date)"
 for REPO_URL in $(echo "${REPOLIST}");
 do
   REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
@@ -175,7 +172,6 @@ do
     sleep "$(echo $RANDOM | grep -Eo "^[0-9]{2}")"
   fi
 done
-echo "end: $(date)"
 
 # postejar
 # echo -e ${REPORT_REPOS}
