@@ -3,17 +3,40 @@
 GITHUB_USERNAME=${GITHUB_USERNAME:-NTTCom-MS}
 REPOBASEDIR=${REPOBASEDIR:-/var/eyprepos}
 REPO_PATTERN=${REPO_PATTERN:-eyp-}
+PAGES_REPO=${PAGES_REPO:-git@github.com:NTTCom-MS/NTTCom-MS.github.io.git}
+DEBUG=1
 
 API_URL_REPOLIST="https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100"
 API_URL_REPOINFO_BASE="https://api.github.com/repos/${GITHUB_USERNAME}"
 
+function table_header()
+{
+  echo -n "<tr>"
+  for header in "$@"
+  do
+      echo -n "<th>${header}</th>"
+  done
+  echo -n "</tr>"
+}
+
+function table_data()
+{
+  echo -n "<tr>"
+  for field in "$@"
+  do
+      echo -n "<td>${field}</td>"
+  done
+  echo -n "</tr>"
+}
+
 function update_doc()
 {
-  curl -u admin:admin -X PUT -H 'Content-Type: application/json' -d'{"id":"3604482","type":"page",
-"title":"new page","space":{"key":"TST"},"body":{"storage":{"value":
-"<p>This is the updated text for the new page</p>","representation":"storage"}},
-"version":{"number":2}}' http://localhost:8080/confluence/rest/api/content/3604482 | python -mjson.tool
+  CURRENT_DOC_VERSION="$(curl -u "${DOC_USER}:${DOC_PASSWORD}" "${DOC_URL_REST}/content/${DOC_ID}" 2>/dev/null | python -c 'import sys, json; print json.load(sys.stdin)["version"]' | grep -Eo "'number': [0-9]+" | awk '{ print $NF }')"
 
+  let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
+
+  curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
+  -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
 }
 
 function paginar()
@@ -37,7 +60,10 @@ function paginar()
     let SLEEP_RATE_LIMIT=SLEEP_RATE_LIMIT+RANDOM_EXTRA_SLEEP
 
     echo "rate limited, sleep: ${SLEEP_RATE_LIMIT}"
-    sleep "${SLEEP_RATE_LIMIT}"
+    if [ "${DEBUG}" -eq 0 ];
+    then
+      sleep "${SLEEP_RATE_LIMIT}"
+    fi
   fi
 
   REPOLIST_LINKS=$(echo "${REPO_LIST_HEADERS}" | grep "^Link" | head -n1)
@@ -52,7 +78,6 @@ function report()
   REPO_NAME=${REPO_URL##*/}
   REPO_NAME=${REPO_NAME%.*}
 
-  echo ${REPO_NAME}
   cd ${REPOBASEDIR}
 
   if [ -d "${REPO_NAME}" ];
@@ -60,14 +85,33 @@ function report()
     rm -fr "${REPOBASEDIR}/${REPO_NAME}"
   fi
 
-  git clone ${REPO_URL}
+  git clone ${REPO_URL} > /dev/null 2>&1
   cd ${REPO_NAME}
 
   MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
 
-  echo "| ${REPO_NAME} | ${MODULE_VERSION} | [!https://travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master!|https://travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}] | [Documentation|https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md] \\\\ [CHANGELOG|https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md] |"
+  #
+  table_data "${REPO_NAME}" \
+             "${MODULE_VERSION}" \
+             "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><img src=\"https://travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png&amp;branch=master\"/></a>" \
+             "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a>" \
+             "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
+}
 
-  cd -
+function getpagesrepo()
+{
+  PAGES_REPO_NAME=${PAGES_REPO##*/}
+  PAGES_REPO_NAME=${PAGES_REPO_NAME%.*}
+
+  cd ${REPOBASEDIR}
+
+  if [ -d "${REPOBASEDIR}/${PAGES_REPO_NAME}" ];
+  then
+    rm -fr "${REPOBASEDIR}/${PAGES_REPO_NAME}"
+  fi
+
+  git clone ${PAGES_REPO}
+  cd ${PAGES_REPO_NAME}
 }
 
 function getrepolist()
@@ -112,21 +156,32 @@ fi
 
 mkdir -p ${REPOBASEDIR}
 
+getpagesrepo
+if [ "${DEBUG}" -eq 0 ];
+then
+  sleep "$(echo $RANDOM | grep -Eo "^[0-9]{2}")"
+fi
+
 getrepolist
 
-REPORT_REPOS="$(echo "|| Module name || Version || Travis status || Links ||")"
+REPORT_REPOS="<table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Documentation' 'CHANGELOG')"
 
 echo "start: $(date)"
-for REPO_URL in $(echo "${REPOLIST}" | head -n1); #DEBUG
+for REPO_URL in $(echo "${REPOLIST}");
 do
-  REPORT_REPOS="${REPORT_REPOS}\n$(report "${REPO_URL}")"
-  # sleep 10 DEBUG
+  REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
+  if [ "${DEBUG}" -eq 0 ];
+  then
+    sleep "$(echo $RANDOM | grep -Eo "^[0-9]{2}")"
+  fi
 done
 echo "end: $(date)"
 
 # postejar
 # echo -e ${REPORT_REPOS}
 
-curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' -d"{\"id\":\"3604482\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"TST\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":2}}" "${DOC_URL_REST}/content/${DOC_ID}"
+REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
+
+update_doc
 
 exit 0

@@ -4,6 +4,7 @@ MAINTAINER Jordi Prats
 ENV HOME /root
 ENV GITHUB_USERNAME NTTCom-MS
 ENV REPO_PATTERN eyp-
+ENV PAGES_REPO git@github.com:NTTCom-MS/NTTCom-MS.github.io.git
 
 RUN yum install epel-release -y
 RUN yum install git -y
