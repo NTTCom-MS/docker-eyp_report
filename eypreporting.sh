@@ -120,10 +120,10 @@ function getossupport()
 
   if [ -f "metadata.json" ];
   then
-    grep operatingsystem_support metadata.json
+    grep operatingsystem_support metadata.json >/dev/null 2>&1
     if [ $? -eq 0 ];
     then
-      grep operatingsystemrelease metadata.json
+      grep operatingsystemrelease metadata.json > /dev/null 2>&1
       if [ $? -eq 0 ];
       then
         SUPPORT_MATRIX_REPO="$(cat metadata.json | python "${BASEDIR}/os_metadata.py" 2>/dev/null)"
