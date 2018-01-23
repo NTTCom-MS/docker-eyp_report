@@ -89,7 +89,6 @@ function report()
 
   MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
 
-  #
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
              "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><ac:image><ri:url ri:value=\"https://api.travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master\"/></ac:image></a>" \
@@ -108,14 +107,12 @@ function getpagesrepo()
     rm -fr "${REPOBASEDIR}/${PAGES_REPO_NAME}"
   fi
 
-  git clone ${PAGES_REPO}
+  git clone ${PAGES_REPO} >/dev/null 2>&1
   cd ${PAGES_REPO_NAME}
 }
 
 function getrepolist()
 {
-  # curl -I https://api.github.com/users/NTTCom-MS/repos?per_page=100 2>/dev/null| grep ^Link:
-
   PAGENUM=1
 
   REPOLIST=$(curl "${API_URL_REPOLIST}&page=${PAGENUM}" 2>/dev/null | grep "ssh_url" | cut -f4 -d\" | grep -E "/${REPO_PATTERN}")
@@ -174,9 +171,6 @@ do
     sleep "$(echo $RANDOM | grep -Eo "^[0-9]{2}")"
   fi
 done
-
-# postejar
-# echo -e ${REPORT_REPOS}
 
 REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
 
