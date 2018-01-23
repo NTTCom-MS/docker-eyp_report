@@ -123,7 +123,11 @@ function getossupport()
     grep operatingsystem_support metadata.json
     if [ $? -eq 0 ];
     then
-      echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+      grep operatingsystemrelease metadata.json
+      if [ $? -eq 0 ];
+      then
+        echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+      fi
     fi
   fi
 }
@@ -209,8 +213,10 @@ do
   fi
 done
 
-REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
-MATRIX_REPOS="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')</tbody></table>"
+REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
+MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
+REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
+MATRIX_REPOS="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
 
 echo "== updating available modules page =="
 update_doc
