@@ -6,4 +6,5 @@ DOC_ID=""
 DOC_SPACE=""
 DOC_USER=""
 DOC_PASSWORD=""
+DEBUG=0
 ```

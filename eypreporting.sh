@@ -162,7 +162,9 @@ fi
 
 getrepolist
 
-REPORT_REPOS="<table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
+COUNT_MODULES="$(echo "${REPOLIST}" | wc -l)"
+
+REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
 
 for REPO_URL in $(echo "${REPOLIST}");
 do
