@@ -120,7 +120,11 @@ function getossupport()
 
   if [ -f "metadata.json" ];
   then
-    echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+    grep operatingsystem_support metadata.json
+    if [ $? -eq 0 ];
+    then
+      echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+    fi
   fi
 }
 
