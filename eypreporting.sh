@@ -126,7 +126,11 @@ function getossupport()
       grep operatingsystemrelease metadata.json
       if [ $? -eq 0 ];
       then
-        echo -n "<tr><td>${REPO_NAME}</td>$(cat metadata.json | python "${BASEDIR}/os_metadata.py")</tr>"
+        SUPPORT_MATRIX_REPO="$(cat metadata.json | python "${BASEDIR}/os_metadata.py" 2>/dev/null)"
+        if [ ! -z "${SUPPORT_MATRIX_REPO}" ];
+        then
+          echo -n "<tr><td>${REPO_NAME}</td>${SUPPORT_MATRIX_REPO}</tr>"
+        fi
       fi
     fi
   fi
