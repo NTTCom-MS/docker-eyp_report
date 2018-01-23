@@ -35,7 +35,7 @@ function update_doc()
   let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
 
   curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
-  -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
+  -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
 }
 
 function update_matrix()
@@ -45,7 +45,7 @@ function update_matrix()
   let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
 
   curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
-  -d"{\"id\":\"${MATRIX_ID}\",\"type\":\"page\",\"title\":\"Module support matrix\",\"space\":{\"key\":\"${MATRIX_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${MATRIX_REPOS}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${MATRIX_ID}"
+  -d"{\"id\":\"${MATRIX_ID}\",\"type\":\"page\",\"title\":\"Module support matrix\",\"space\":{\"key\":\"${MATRIX_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${MATRIX_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${MATRIX_ID}"
 }
 
 function paginar()
@@ -219,8 +219,8 @@ done
 
 REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
 MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
-REPORT_REPOS="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
-MATRIX_REPOS="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
+REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
+MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
 
 echo "== updating available modules page =="
 update_doc
