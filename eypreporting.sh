@@ -97,14 +97,18 @@ function report()
   git clone ${REPO_URL} > /dev/null 2>&1
   cd ${REPO_NAME}
 
+  SHORT_DESCRIPTION=''
+  MODULE_VERSION=''
   if [ -f "metadata.json" ];
   then
     # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
     MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
+    SHORT_DESCRIPTION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["summary"]')"
   fi
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
+             "${SHORT_DESCRIPTION}" \
              "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><ac:image><ri:url ri:value=\"https://api.travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master\"/></ac:image></a>" \
              "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a><br/><a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
 }
@@ -208,7 +212,7 @@ getrepolist
 
 COUNT_MODULES="$(echo "${REPOLIST}" | wc -l)"
 
-REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
+REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Description' 'Travis status' 'Links')"
 MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RHEL 7' 'Ubuntu 14.04' 'Ubuntu 16.04' 'SLES 11.3')"
 
 for REPO_URL in $(echo "${REPOLIST}");
