@@ -241,8 +241,8 @@ done
 
 REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
 MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
-REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp\1/g')"
-MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp\1/g')"
+REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
+MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
 
 if [ ! -z "${DOC_ID}" ];
 then
