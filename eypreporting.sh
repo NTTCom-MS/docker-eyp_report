@@ -101,10 +101,20 @@ function report()
   then
     # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
     MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
+    SHORT_DESCRIPTION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["summary"]')"
+  else
+    SHORT_DESCRIPTION=''
+    MODULE_VERSION=''
+  fi
+
+  if [ "${DEBUG}" -eq 1 ];
+  then
+    (>&2 echo "${REPO_NAME} ${SHORT_DESCRIPTION}")
   fi
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
+             "${SHORT_DESCRIPTION}" \
              "<a href=\"/${GITHUB_USERNAME}/${REPO_NAME}\"><ac:image><ri:url ri:value=\"https://api.travis-ci.org/${GITHUB_USERNAME}/${REPO_NAME}.png?branch=master\"/></ac:image></a>" \
              "<a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/README.md\">Documentation</a><br/><a href=\"https://github.com/${GITHUB_USERNAME}/${REPO_NAME}/blob/master/CHANGELOG.md\">CHANGELOG</a>"
 }
@@ -187,8 +197,13 @@ else
     . $BASEDIR/${BASENAME%%.*}.config 2>/dev/null
   else
     echo "config file missing"
-    exit 1
   fi
+fi
+
+if [ -z "${DOC_ID}" ] && [ -z "${MATRIX_ID}" ];
+then
+  echo "ERROR: neither DOC_ID nor MATRIX_ID is defined"
+  exit 1
 fi
 
 mkdir -p ${REPOBASEDIR}
@@ -203,13 +218,20 @@ getrepolist
 
 COUNT_MODULES="$(echo "${REPOLIST}" | wc -l)"
 
-REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Travis status' 'Links')"
+REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Description' 'Travis status' 'Links')"
 MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RHEL 7' 'Ubuntu 14.04' 'Ubuntu 16.04' 'SLES 11.3')"
 
 for REPO_URL in $(echo "${REPOLIST}");
 do
-  REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
-  MATRIX_REPOS="${MATRIX_REPOS}$(getossupport "${REPO_URL}")"
+  if [ ! -z "${DOC_ID}" ];
+  then
+    REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
+  fi
+
+  if [ ! -z "${MATRIX_ID}" ];
+  then
+    MATRIX_REPOS="${MATRIX_REPOS}$(getossupport "${REPO_URL}")"
+  fi
 
   if [ "${DEBUG}" -eq 0 ];
   then
@@ -219,12 +241,19 @@ done
 
 REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
 MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
-REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
-MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
+REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
+MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
 
-echo "== updating available modules page =="
-update_doc
-echo -e "\n\n== updating support matrix page =="
-update_matrix
+if [ ! -z "${DOC_ID}" ];
+then
+  echo "== updating available modules page =="
+  update_doc
+fi
+
+if [ ! -z "${MATRIX_ID}" ];
+then
+  echo -e "\n\n== updating support matrix page =="
+  update_matrix
+fi
 
 exit 0
