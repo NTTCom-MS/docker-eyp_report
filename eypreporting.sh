@@ -107,7 +107,10 @@ function report()
     MODULE_VERSION=''
   fi
 
-  (>&2 echo "${REPO_NAME} ${SHORT_DESCRIPTION}")
+  if [ "${DEBUG}" -eq 1 ];
+  then
+    (>&2 echo "${REPO_NAME} ${SHORT_DESCRIPTION}")
+  fi
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
