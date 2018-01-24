@@ -97,14 +97,17 @@ function report()
   git clone ${REPO_URL} > /dev/null 2>&1
   cd ${REPO_NAME}
 
-  SHORT_DESCRIPTION=''
-  MODULE_VERSION=''
   if [ -f "metadata.json" ];
   then
     # MODULE_VERSION=$(cat metadata.json  | grep '"version"' | awk '{ print $NF }' | cut -f2 -d\")
     MODULE_VERSION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["version"]')"
     SHORT_DESCRIPTION="$(cat metadata.json | python -c 'import sys, json; print json.load(sys.stdin)["summary"]')"
+  else
+    SHORT_DESCRIPTION=''
+    MODULE_VERSION=''
   fi
+
+  (>&2 echo "${REPO_NAME} ${SHORT_DESCRIPTION}")
 
   table_data "${REPO_NAME}" \
              "${MODULE_VERSION}" \
@@ -235,8 +238,8 @@ done
 
 REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
 MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
-REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
-MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
+REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g' | sed 's/\b&\b/&amp;/g')"
+MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g' | sed 's/\b&\b/&amp;/g')"
 
 if [ ! -z "${DOC_ID}" ];
 then
