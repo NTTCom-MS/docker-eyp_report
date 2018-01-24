@@ -194,7 +194,7 @@ else
   fi
 fi
 
-if [ ! -z "${DOC_ID}" ] && [ ! -z "${MATRIX_ID}" ];
+if [ -z "${DOC_ID}" ] && [ -z "${MATRIX_ID}" ];
 then
   echo "ERROR: neither DOC_ID nor MATRIX_ID is defined"
   exit 1
