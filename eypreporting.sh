@@ -187,8 +187,13 @@ else
     . $BASEDIR/${BASENAME%%.*}.config 2>/dev/null
   else
     echo "config file missing"
-    exit 1
   fi
+fi
+
+if [ ! -z "${DOC_ID}" ] && [ ! -z "${MATRIX_ID}" ];
+then
+  echo "ERROR: neither DOC_ID nor MATRIX_ID is defined"
+  exit 1
 fi
 
 mkdir -p ${REPOBASEDIR}
@@ -208,8 +213,15 @@ MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RH
 
 for REPO_URL in $(echo "${REPOLIST}");
 do
-  REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
-  MATRIX_REPOS="${MATRIX_REPOS}$(getossupport "${REPO_URL}")"
+  if [ ! -z "${DOC_ID}" ];
+  then
+    REPORT_REPOS="${REPORT_REPOS}$(report "${REPO_URL}")"
+  fi
+
+  if [ ! -z "${MATRIX_ID}" ];
+  then
+    MATRIX_REPOS="${MATRIX_REPOS}$(getossupport "${REPO_URL}")"
+  fi
 
   if [ "${DEBUG}" -eq 0 ];
   then
@@ -222,9 +234,16 @@ MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
 REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g')"
 MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g')"
 
-echo "== updating available modules page =="
-update_doc
-echo -e "\n\n== updating support matrix page =="
-update_matrix
+if [ ! -z "${DOC_ID}" ];
+then
+  echo "== updating available modules page =="
+  update_doc
+fi
+
+if [ ! -z "${MATRIX_ID}" ];
+then
+  echo -e "\n\n== updating support matrix page =="
+  update_matrix
+fi
 
 exit 0
