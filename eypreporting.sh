@@ -34,8 +34,15 @@ function update_doc()
 
   let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
 
+  if [ ! -z "${DOC_ANCESTOR}" ];
+  then
+    ANCESTOR_JSON="\"ancestors\":[{\"type\":\"page\",\"id\":${DOC_ANCESTOR}}]‌​,"
+  else
+    ANCESTOR_JSON=""
+  fi
+
   curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
-  -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
+  -d"{\"id\":\"${DOC_ID}\",\"type\":\"page\",${ANCESTOR_JSON}\"title\":\"Module TOC\",\"space\":{\"key\":\"${DOC_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${REPORT_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${DOC_ID}"
 }
 
 function update_matrix()
@@ -44,8 +51,15 @@ function update_matrix()
 
   let NEXT_DOC_VERSION=CURRENT_DOC_VERSION+1
 
+  if [ ! -z "${MATRIX_ANCESTOR}" ];
+  then
+    ANCESTOR_JSON="\"ancestors\":[{\"type\":\"page\",\"id\":${MATRIX_ANCESTOR}}]‌​,"
+  else
+    ANCESTOR_JSON=""
+  fi
+
   curl -u "${DOC_USER}:${DOC_PASSWORD}" -X PUT -H 'Content-Type: application/json' \
-  -d"{\"id\":\"${MATRIX_ID}\",\"type\":\"page\",\"title\":\"Module support matrix\",\"space\":{\"key\":\"${MATRIX_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${MATRIX_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${MATRIX_ID}"
+  -d"{\"id\":\"${MATRIX_ID}\",\"type\":\"page\",${ANCESTOR_JSON}\"title\":\"Module support matrix\",\"space\":{\"key\":\"${MATRIX_SPACE}\"},\"body\":{\"storage\":{\"value\":\"${MATRIX_REPOS_CLEAN}\",\"representation\":\"storage\"}},\"version\":{\"number\":\"${NEXT_DOC_VERSION}\"}}" "${DOC_URL_REST}/content/${MATRIX_ID}"
 }
 
 function paginar()
