@@ -36,7 +36,7 @@ function update_doc()
 
   if [ ! -z "${DOC_ANCESTOR}" ];
   then
-    ANCESTOR_JSON="\"ancestors\":[{\"type\":\"page\",\"id\":${DOC_ANCESTOR}}]‌​,"
+    ANCESTOR_JSON="\"ancestors\":[{\"id\", \"${DOC_ANCESTOR}\"}]‌​,"
   else
     ANCESTOR_JSON=""
   fi
@@ -53,7 +53,7 @@ function update_matrix()
 
   if [ ! -z "${MATRIX_ANCESTOR}" ];
   then
-    ANCESTOR_JSON="\"ancestors\":[{\"type\":\"page\",\"id\":${MATRIX_ANCESTOR}}]‌​,"
+    ANCESTOR_JSON="\"ancestors\":[{\"id\", \"${MATRIX_ANCESTOR}\"}]‌​,"
   else
     ANCESTOR_JSON=""
   fi
