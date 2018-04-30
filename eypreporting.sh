@@ -233,7 +233,7 @@ getrepolist
 COUNT_MODULES="$(echo "${REPOLIST}" | wc -l)"
 
 REPORT_REPOS="Total modules: ${COUNT_MODULES}<br/><table><tbody>$(table_header 'Module name' 'Version' 'Description' 'Travis status' 'Links')"
-MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RHEL 7' 'Ubuntu 14.04' 'Ubuntu 16.04' 'SLES 11.3')"
+MATRIX_REPOS="<table><tbody>$(table_header '' 'CentOS 6' 'CentOS 7' 'RHEL 6' 'RHEL 7' 'Ubuntu 14.04' 'Ubuntu 16.04' 'Ubuntu 18.04' 'SLES 11.3')"
 
 for REPO_URL in $(echo "${REPOLIST}");
 do
