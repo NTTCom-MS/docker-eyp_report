@@ -36,7 +36,7 @@ function update_doc()
 
   if [ ! -z "${DOC_ANCESTOR}" ];
   then
-    ANCESTOR_JSON="\"ancestors\":[{\"id\": \"${DOC_ANCESTOR}\"}]‌​,"
+    ANCESTOR_JSON="\"ancestors\":[{\"id\": \"${DOC_ANCESTOR}\"}],"
   else
     ANCESTOR_JSON=""
   fi
