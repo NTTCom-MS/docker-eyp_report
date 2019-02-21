@@ -253,8 +253,8 @@ do
   fi
 done
 
-REPORT_REPOS="${REPORT_REPOS}</tbody></table>"
-MATRIX_REPOS="${MATRIX_REPOS}</tbody></table>"
+REPORT_REPOS="${REPORT_REPOS}</tbody></table><p><ac:structured-macro ac:name=\"viewtracker\"/></p>"
+MATRIX_REPOS="${MATRIX_REPOS}</tbody></table><p><ac:structured-macro ac:name=\"viewtracker\"/></p>"
 REPORT_REPOS_CLEAN="$(echo "${REPORT_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
 MATRIX_REPOS_CLEAN="$(echo "${MATRIX_REPOS}" | sed 's/"/\\"/g' | sed 's/&\([ ]*\)/\&amp;\1/g')"
 
